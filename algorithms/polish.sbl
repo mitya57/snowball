@@ -20,127 +20,97 @@ externals (stem)
 
 routines (
   remove_nouns
-  remove_dimunitive
-  remove_superlative_ends
+  remove_comparative
+  remove_superlative
   remove_adjective_ends
+  remove_adjective_suffices
   remove_verbs_ends
   remove_adverbs_ends
-  remove_plural_forms
-  remove_general_ends
 )
 
 
 backwardmode (
   define remove_nouns as (
-    (
-      $(len > 6)
-      [substring] among (
-        // Borrowed words that match English -ation, e.g. fortyfikacja (fortification).
-        'acja'     // nominative
-        'acji'     // genitive/dative/locative
-        'acj{ak}'  // accusative
-        // Verbal nouns, e.g. czytanie, narodzenie.
-        'anie' 'enie'  // nominative
-        'aniu' 'eniu'  // dative/locative
-          (delete)
-        // Borrowed words that match English -tics, e.g. lingwistyka (linguistics).
-        'tyka'
-          (<- 'ty')
-      )
-    ) or (
-      $(len > 5)
-      [substring] among (
-        'ach'  // plural locative
-        'ami'  // plural instrumental
-        'nia'  // genitive of words ending with -nie, e.g. czytanie - czytania
-        'niu'  // dative/locative of words ending with -nie, e.g. czytanie - czytaniu
-        'cia'  // genitive of words ending with -cie, e.g. ukrycie - ukrycia
-        'ciu'  // dative/locative of words ending with -cie, e.g. ukrycie - ukryciu
-        'ce'   // dative/locative of words ending with -ka, e.g. muzyka - muzyce
-          (delete)
-        // Borrowed words that match English -tion, e.g. intencja (intention).
-        'cja'     // nominative
-        'cji'     // genitive/dative/locative
-        'cj{ak}'  // accusative
-          (<- 'c')
-      )
-    )
-  )
-
-  define remove_dimunitive as (
-    (
-      $(len > 6)
-      [substring] among (
-        'eczek'  // e.g. człowieczek (diminutive of człowiek)
-        'iczek'  // e.g. czajniczek (diminutive of czajnik)
-        'iszek'  // e.g. braciszek (diminutive of brat)
-        'aszek'  // e.g. młodzieniaszek (diminutive of młodzieniec)
-        'uszek'  // e.g. kwiatuszek (diminutive of kwiat)
-          (delete)
-      )
-    ) or (
-      $(len > 4)
-      [substring] among (
-        'ek'  // e.g. ogródek (diminutive of ogród)
-        'ak'  // e.g. gęsiak (diminutive of gęś)
-          (delete)
+    [substring] among (
+      'a' 'u' 'owi' 'iem' '{o'}w'  // masculine endings
+      'i' 'e' '{ek}' '{ak}' 'om'   // feminine endings
+      'o' 'em'                     // neuter endings
+      'am' 'ami' 'ach'             // plural endings
+      (
+        delete
+        ['ani'] (delete)
       )
     )
   )
 
   define remove_adjective_ends as (
-    (
-      $(len > 6)
-      [substring] among (
-        // -cz- is part of the root, -n- is a d-suffix, -y is nominative ending
-        // e.g. słoneczny (sunny, from słońce)
-        'czny'
-          (delete)
-      )
-    ) or (
-      $(len > 5)
-      [substring] among (
-        'owy' 'owa' 'owe'  // E.g. planowy (masculine), planowa (feminine), planowe (neuter)
-        'ych'  // genitive/accusative/locative plural
-        'ego'  // genitive/accusative singular (masculine)
-        'ej'   // genitive/dative/locative singular (feminine)
-          (delete)
-      )
+    [substring] among (
+      'y' 'e' 'ego' 'emu' 'ym'  // masculine/neuter declension
+      'a' 'ej' '{ak}'           // feminine declension
+      'i' 'ych' 'ymi'           // plural declension
+        (delete)
+    )
+  )
+
+  define remove_comparative as (
+    [substring] among (
+      'iejsz' 'sz'
+        (delete)
+    )
+  )
+
+  define remove_adjective_suffices as (
+    [substring] among (
+      'n' 'ow'          // common d-suffices
+      'aj{ak}c' '{ak}c' // active participles
+      'w'               // passive participle (TODO: explanation, tests)
+        (delete)
     )
   )
 
   define remove_verbs_ends as (
-    (
-      $(len > 5)
-      [substring] among (
-        'bym'        // conditional 1st person singular, e.g. czytał(a)bym
-                     // TODO: maybe also add 'by{s'}' for 2nd person?
-        'esz'        // present 2nd person singular, e.g. piszesz
-        'asz'        // present 2nd person singular, e.g. czytasz
-        'cie'        // present 2nd person plural, e.g. czytacie
-        'e{s'}{c'}'  // infinitive, e.g. przynieść
-        'a{s'}c'     // TODO: should it be 'a{s'}{c'}'? E.g. popaść (also infinitive)
-        '{l/}em'     // past 1st person singular masculine, e.g. czytałem
-        'emy'        // present 1st person plural, e.g. piszemy
-        'amy'        // present 1st person plural, e.g. czytamy
-          (delete)
-      )
-    ) or (
-      $(len > 3)
-      [substring] among (
-        'a{c'}'  // infinitive, e.g. czytać
-        'e{c'}'  // infinitive, e.g. chcieć
-        'i{c'}'  // infinitive, e.g. wozić
-        'em'     // past 1st person singular masculine, e.g. czytałem
-        'am'     // past 1st person singular feminine, e.g. czytałam
-        'a{l/}'  // past 3rd person singular masculine, e.g. czytał
-        'i{l/}'  // past 3rd person singular masculine, e.g. woził
-        '{ak}c'  // contemporary adverbial participle (transgressive), e.g. czytając
-          (delete)
-        'aj'     // imperative, e.g. czytaj
-          (<- 'a')
-      )
-    )
+    // TODO: More tests
+    do ([substring] among (
+      'bym'
+      'by{s'}'
+      'by{s'}my'
+      'by{s'}cie'
+      'by'
+        (delete)
+    ))
+    ([substring] among (
+      'a{c'}'
+      'am'
+      'asz'
+      'amy'
+      'acie'
+      'aj{ak}'
+      'a{l/}em'
+      'a{l/}am'
+      'a{l/}e{s'}'
+      'a{l/}a{s'}'
+      'a{l/}'
+      'a{l/}a'
+      'a{l/}o'
+      'ali'
+      'a{l/}y'
+      'aj'
+      'i{c'}'
+      'z{ek}'
+      'isz'
+      'imy'
+      'icie'
+      'i{l/}em'
+      'i{l/}am'
+      'i{l/}e{s'}'
+      'i{l/}a{s'}'
+      'i{l/}'
+      'i{l/}a'
+      'i{l/}o'
+      'ili'
+      'i{l/}y'
+        (delete)
+    ))
   )
 
   define remove_adverbs_ends as (
@@ -156,67 +126,21 @@ backwardmode (
       )
     )
   )
-
-  define remove_plural_forms as (
-    (
-      $(len > 4)
-      [substring] among (
-        '{o'}w'  // genitive plural, e.g. włos - włosów
-        'om'     // dative plural, e.g. włos - włosom
-        'ami'    // instrumental plural, e.g. włos - włosami
-          (delete)
-      )
-    )
-  )
-
-  define remove_general_ends as (
-    (
-      $(len > 4)
-      [substring] among (
-        // These vowel endings can appear in different contexts
-        'ia'    // e.g. słonia (genitive singular of słoń)
-        'ie'    // e.g. słonie (nominative plural of słoń)
-        'u'     // e.g. stołu (genitive singular of stół)
-        '{ak}'  // e.g. książką (noun, instrumental) or piszą (verb, present 3rd person plural)
-        '{ek}'  // e.g. książkę (noun, accusative) or piszę (verb, present 1st person singular)
-        'i'     // e.g. książki (nominative plural of książka)
-        'a'     // e.g. kobieta (nominative singular)
-        'y'     // e.g. kobiety (nominative plural of kobieta)
-        '{l/}'  // e.g. napadł (past 3rd person singular masculine of napaść)
-          (delete)
-      )
-    )
-  )
 )
 
-define remove_superlative_ends as (
-  test (
-    ['naj'] (
-      backwards (
-        [substring] among (
-          'sze'    // adverb, e.g. w najlepsze
-          'szy'    // nominative singular masculine, e.g. najlepszy
-          'szych'  // genitive plural, e.g. najlepszych
-          // TODO: Add more forms like 'szego', 'szemu', etc?
-            (delete)
-        )
-      )
-    )
-  )
-  [tomark sizeof 'naj'] delete
+define remove_superlative as (
+  ['naj'] delete
 )
 
 define stem as (
-  backwards (
-    do remove_nouns
-    do remove_dimunitive
-  )
-  remove_superlative_ends or (backwards do remove_adjective_ends)
-  backwards (
-    do remove_verbs_ends
-    do remove_adverbs_ends
-    do remove_plural_forms
-    do remove_general_ends
-  )
+  not (backwards remove_verbs_ends)
+  not (backwards remove_adjective_ends (
+    do (
+      (backwards remove_comparative)
+      (do remove_superlative)
+    )
+    (backwards remove_adjective_suffices)
+  ))
+  not (backwards remove_nouns)
+  not (backwards remove_adverbs_ends)
 )
-
